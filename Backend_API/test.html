@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>YAMNet Audio Classifier</title>
+</head>
+<body>
+  <h2>YAMNet Real-Time Audio Classifier</h2>
+  <button id="startBtn">Start Recording</button>
+  <button id="stopBtn" disabled>Stop</button>
+  <p id="status">Status: Not connected</p>
+  <p><strong>Detected Sound:</strong> <span id="result">None</span></p>
+
+  <script>
+    const WS_URL = "ws://localhost:8000/ws/audio";
+    let ws, audioContext, processor, micStream;
+    let buffer = [];
+
+    const statusEl = document.getElementById("status");
+    const resultEl = document.getElementById("result");
+    const startBtn = document.getElementById("startBtn");
+    const stopBtn = document.getElementById("stopBtn");
+
+    startBtn.onclick = async () => {
+      ws = new WebSocket(WS_URL);
+
+      ws.onopen = () => {
+        statusEl.textContent = "Status: Connected";
+        startAudioStream();
+      };
+
+      ws.onmessage = (event) => {
+        resultEl.textContent = event.data;
+      };
+
+      ws.onerror = (err) => {
+        statusEl.textContent = "WebSocket error";
+        console.error(err);
+      };
+
+      ws.onclose = () => {
+        statusEl.textContent = "WebSocket closed";
+      };
+
+      startBtn.disabled = true;
+      stopBtn.disabled = false;
+    };
+
+    stopBtn.onclick = () => {
+      if (processor) processor.disconnect();
+      if (micStream) micStream.getTracks().forEach(t => t.stop());
+      if (audioContext) audioContext.close();
+      if (ws && ws.readyState === WebSocket.OPEN) ws.close();
+
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+      statusEl.textContent = "Status: Disconnected";
+    };
+
+    function startAudioStream() {
+      navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+        micStream = stream;
+
+        const source = audioContext.createMediaStreamSource(stream);
+        processor = audioContext.createScriptProcessor(4096, 1, 1);
+
+        source.connect(processor);
+        processor.connect(audioContext.destination);
+
+        processor.onaudioprocess = (e) => {
+          const input = e.inputBuffer.getChannelData(0);
+          const int16Data = floatTo16BitPCM(input);
+          buffer.push(...int16Data);
+
+          // Send every 5 seconds worth of data (16000 samples/sec * 5 = 80,000 samples)
+          if (buffer.length >= 80000) {
+            const chunk = new Int16Array(buffer.slice(0, 80000));
+            buffer = buffer.slice(80000);
+            if (ws && ws.readyState === WebSocket.OPEN) {
+              ws.send(int16ArrayToBuffer(chunk));
+            }
+          }
+        };
+      });
+    }
+
+    function floatTo16BitPCM(input) {
+      const output = new Int16Array(input.length);
+      for (let i = 0; i < input.length; i++) {
+        let s = Math.max(-1, Math.min(1, input[i]));
+        output[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+      }
+      return output;
+    }
+
+    function int16ArrayToBuffer(int16Array) {
+      return new Uint8Array(new Int16Array(int16Array).buffer);
+    }
+  </script>
+</body>
+</html>

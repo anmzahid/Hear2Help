@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+websockets
+tensorflow
+tensorflow_hub
+numpy
+scipy
+soundfile

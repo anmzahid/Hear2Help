@@ -1,0 +1,46 @@
+Backend_API/venv
+Backend_API/venv/
+Backend_API/pycache_
+Backend_API/__pycache__/
+
+
+
+# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+
+# dependencies
+Hear2Help/node_modules/
+
+# Expo
+Hear2Help/.expo/
+Hear2Help/dist/
+Hear2Help/web-build/
+Hear2Help/expo-env.d.ts
+
+# Native
+Hear2Help/.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro
+Hear2Help/.metro-health-check*
+
+# debug
+Hear2Help/npm-debug.*
+Hear2Help/yarn-debug.*
+Hear2Help/yarn-error.*
+
+# macOS
+Hear2Help/.DS_Store
+Hear2Help/*.pem
+
+# local env files
+Hear2Help/.env*.local
+
+# typescript
+Hear2Help/*.tsbuildinfo
+
+Hear2Help/app-example
