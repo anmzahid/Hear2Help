@@ -1,3 +1,6 @@
+//HistoryScreen.tsx
+
+
 import React from "react";
 import { View, FlatList, Text, StyleSheet } from "react-native";
 import SoundItem from "../components/SoundItem";

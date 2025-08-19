@@ -1,3 +1,5 @@
+//HomeScreen.tsx
+
 import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, Alert } from "react-native";
 import { Image } from 'expo-image';

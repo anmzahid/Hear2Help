@@ -1,3 +1,5 @@
+//SounClassesScreen.tsx
+
 import React, { useState } from "react";
 import { View, FlatList, StyleSheet, Text } from "react-native";
 import SearchBar from "../components/SearchBar";
