@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Platform } from 'react-native';
+import { Platform, PermissionsAndroid } from 'react-native';
 
 export function useAudioRecording() {
   const [isRecording, setIsRecording] = useState(false);
@@ -19,8 +19,12 @@ export function useAudioRecording() {
 
   const startRecording = async (onAudioData: (data: ArrayBuffer) => void) => {
     if (!hasPermission) {
-      console.log('No microphone permission');
-      return;
+      // Try to request permission on the fly
+      const ok = await requestPermission();
+      if (!ok) {
+        console.log('No microphone permission');
+        return;
+      }
     }
 
     try {
@@ -35,6 +39,24 @@ export function useAudioRecording() {
       setIsRecording(true);
     } catch (error) {
       console.error('Failed to start recording:', error);
+    }
+  };
+
+  const requestPermission = async (): Promise<boolean> => {
+    try {
+      if (Platform.OS === 'android') {
+        const res = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.RECORD_AUDIO);
+        const granted = res === PermissionsAndroid.RESULTS.GRANTED;
+        setHasPermission(granted);
+        return granted;
+      }
+      // iOS or others: for now assume true or integrate expo-av/permissions later
+      setHasPermission(true);
+      return true;
+    } catch (e) {
+      console.error('Permission request failed', e);
+      setHasPermission(false);
+      return false;
     }
   };
 
@@ -126,5 +148,6 @@ export function useAudioRecording() {
     hasPermission,
     startRecording,
     stopRecording,
+    requestPermission,
   };
 }
