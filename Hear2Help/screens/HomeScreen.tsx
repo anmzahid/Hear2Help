@@ -1,14 +1,14 @@
 //HomeScreen.tsx
 
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, Alert } from "react-native";
+import { View, Text, StyleSheet, Alert, TouchableOpacity } from "react-native";
 import { Image } from 'expo-image';
 import MonitoringToggle from "../components/MonitoringToggle";
-import { useSocket } from "../hooks/useSocket";
+import { useSocketContext } from "@/contexts/SocketContext";
 import { getSoundClassification, DEFAULT_GIF } from "../utils/soundClassificationMap";
 
 export default function HomeScreen() {
-  const { soundData } = useSocket();
+  const { soundData, isConnected, clearSound } = useSocketContext();
 
   // Debug logging
   useEffect(() => {
@@ -76,6 +76,9 @@ export default function HomeScreen() {
       <View style={styles.soundDisplay}>
         <View style={styles.gifContainer}>
           <Image source={gifSource} style={styles.gif} />
+          <TouchableOpacity style={styles.closeGifBtn} onPress={clearSound}>
+            <Text style={styles.closeGifText}>✕</Text>
+          </TouchableOpacity>
         </View>
         
         <View style={styles.textContainer}>
@@ -97,9 +100,36 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Hear2Help</Text>
+      <Text style={styles.header}>SoundAlert</Text>
+      <Text style={styles.subheader}>{isConnected ? 'Sound monitoring is active' : 'Sound monitoring is paused'}</Text>
+
+      {/* Big mic/status card */}
+      <View style={styles.statusCard}>
+        <View style={styles.statusCircle}>
+          <Text style={styles.statusIcon}>🔊</Text>
+          <Text style={styles.statusLabel}>{isConnected ? 'Listening' : 'Paused'}</Text>
+        </View>
+      </View>
+
       <MonitoringToggle />
-      
+
+      {/* Stats row */}
+      <View style={styles.statsRow}>
+        <View style={styles.statBox}>
+          <Text style={styles.statNumber}>{soundData && soundData.label ? 1 : 0}</Text>
+          <Text style={styles.statLabel}>Active</Text>
+        </View>
+        <View style={styles.statBox}>
+          <Text style={styles.statNumber}>3</Text>
+          <Text style={styles.statLabel}>Alerts</Text>
+        </View>
+        <View style={styles.statBox}>
+          <Text style={[styles.statNumber, { color: isConnected ? '#1DB954' : '#999' }]}>{isConnected ? 'ON' : 'OFF'}</Text>
+          <Text style={styles.statLabel}>Status</Text>
+        </View>
+      </View>
+
+      {/* Detected sound display */}
       {soundData && soundData.label ? (
         getSoundDisplay()
       ) : (
@@ -125,12 +155,52 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     color: "#333"
   },
+  subheader: {
+    fontSize: 14,
+    textAlign: 'center',
+    color: '#666',
+    marginTop: -12,
+    marginBottom: 16,
+  },
+  statusCard: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  statusCircle: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    backgroundColor: '#f8fafc',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  statusIcon: { fontSize: 22 },
+  statusLabel: { marginTop: 6, fontSize: 12, color: '#666' },
   soundDisplay: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
   },
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  statBox: {
+    flex: 1,
+    marginHorizontal: 6,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: '#f9fafb',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  statNumber: { fontSize: 20, fontWeight: '700', color: '#333' },
+  statLabel: { fontSize: 12, color: '#666', marginTop: 4 },
   gifContainer: {
     marginBottom: 30,
     shadowColor: "#000",
@@ -144,6 +214,18 @@ const styles = StyleSheet.create({
     height: 200,
     borderRadius: 20,
   },
+  closeGifBtn: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#111827',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  closeGifText: { color: '#fff', fontSize: 16, fontWeight: '700' },
   textContainer: {
     alignItems: "center",
   },

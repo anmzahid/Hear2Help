@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { TouchableOpacity, Text, StyleSheet, Alert } from "react-native";
-import { useSocket } from "../hooks/useSocket";
+import { useSocketContext } from "@/contexts/SocketContext";
 import { useAudioRecording } from "../hooks/useAudioRecording";
 
 export default function MonitoringToggle() {
   const [monitoring, setMonitoring] = useState(false);
-  const { isConnected, connect, disconnect, sendAudioData } = useSocket();
+  const { isConnected, connect, disconnect, sendAudioData, clearSound } = useSocketContext();
   const { isRecording, hasPermission, startRecording, stopRecording } = useAudioRecording();
 
   // Update monitoring state based on actual recording and connection status
@@ -18,6 +18,7 @@ export default function MonitoringToggle() {
       // Stop monitoring
       await stopRecording();
       disconnect();
+      clearSound();
       setMonitoring(false);
     } else {
       // Start monitoring

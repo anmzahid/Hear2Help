@@ -1,5 +1,4 @@
 //AlertScreen.tsx
-
 import React, { useState } from "react";
 import { View, Button } from "react-native";
 import AlertPopup from "../components/AlertPopup";

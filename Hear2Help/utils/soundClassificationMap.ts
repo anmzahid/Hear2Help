@@ -419,7 +419,7 @@ export const soundClassificationMap: Record<string, SoundClassification> = {
   'Beat': { label: 'Beat', gif: doorbellGif, displayName: 'Beat', category: 'music' },
   
   // Speech sounds
-  'Speech': { label: 'Speech', gif: doorbellGif, displayName: 'Speech', category: 'speech' },
+  'Speech': { label: 'Speech', gif: alarmGif, displayName: 'Speech', category: 'speech' },
   'Narration, monologue': { label: 'Narration, monologue', gif: doorbellGif, displayName: 'Narration', category: 'speech' },
   'Child speech, kid speaking': { label: 'Child speech, kid speaking', gif: doorbellGif, displayName: 'Child Speech', category: 'speech' },
   'Female speech, woman speaking': { label: 'Female speech, woman speaking', gif: doorbellGif, displayName: 'Female Speech', category: 'speech' },

@@ -91,6 +91,7 @@ export function useSocket() {
     }
     setIsConnected(false);
     setConnectionError(null);
+    setSoundData(null);
   };
 
   const sendAudioData = (audioData: ArrayBuffer) => {
@@ -106,6 +107,10 @@ export function useSocket() {
     }
   };
 
+  const clearSound = () => {
+    setSoundData(null);
+  };
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -119,6 +124,7 @@ export function useSocket() {
     connectionError,
     connect,
     disconnect,
-    sendAudioData
+    sendAudioData,
+    clearSound
   };
 }

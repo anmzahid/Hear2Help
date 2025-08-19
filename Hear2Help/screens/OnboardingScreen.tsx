@@ -1,11 +1,10 @@
-//OnlobardingScreen.tsx
+// app/OnboardingScreen.tsx
 
 import React, { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
-import { useAppContext } from "../app/context/AppContext";
-import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
 
 const screens = [
   { 
@@ -55,353 +54,92 @@ const screens = [
   },
   { 
     id: 4, 
-    title: "Smart Notifications",
-    subtitle: "Stay informed anywhere",
-    description: "Get instant notifications with haptic feedback. Critical alerts have stronger vibrations and visual effects.",
+    title: "Get Started",
+    subtitle: "Ready to begin?",
+    description: "Let’s set up your preferences and start detecting important sounds in your environment.",
     features: [
-      { text: "Haptic feedback patterns", icon: "pulse-outline" },
-      { text: "Push notifications", icon: "notifications-outline" },
-      { text: "Location tracking (optional)", icon: "location-outline" }
+      { text: "Easy setup process", icon: "settings-outline" },
+      { text: "Customizable alerts", icon: "options-outline" },
+      { text: "Works in background", icon: "time-outline" }
     ],
-    backgroundColor: "#7700FF",
-    backgroundGradient: "#B066FF",
-    iconName: "notifications-outline",
-    iconColor: "#FF9800"
+    backgroundColor: "#9C27B0",
+    backgroundGradient: "#BA68C8",
+    iconName: "checkmark-circle-outline",
+    iconColor: "#4CAF50"
   }
 ];
 
-export default function OnboardingScreen({ onFinish }: { onFinish?: () => void }) {
-  const [currentScreen, setCurrentScreen] = useState(0);
-  const [selectedSounds, setSelectedSounds] = useState({
-    critical: true,
-    normal: true,
-    misc: true
-  });
-  const [notificationSettings, setNotificationSettings] = useState({
-    hapticFeedback: true,
-    pushNotifications: true,
-    locationTracking: false
-  });
+export default function OnboardingScreen() {
+  const [screenIndex, setScreenIndex] = useState(0);
+  const router = useRouter();
 
-  const { completeOnboarding } = useAppContext();
+  const currentScreen = screens[screenIndex];
 
-  // Expo Router navigation for top-level tab switch
-
-  const screen = screens[currentScreen];
-
-  const handleNext = () => {
-    if (currentScreen < screens.length - 1) {
-      setCurrentScreen(currentScreen + 1);
-    } else {
-      // Navigate to HomeScreen tab
-      completeOnboarding();
-      router.replace("/");
-    }
-  };
-
-  const handleSkip = () => {
-    // Navigate to HomeScreen tab
-    completeOnboarding();
-    router.replace("/");
-  };
-  
-  const renderBackground = () => {
-    if (screen.backgroundGradient) {
-      return (
-        <LinearGradient
-          colors={[screen.backgroundColor, screen.backgroundGradient]}
-          style={StyleSheet.absoluteFill}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-        />
-      );
-    }
-    return <View style={[StyleSheet.absoluteFill, { backgroundColor: screen.backgroundColor }]} />;
-  };
-  
-  const renderPaginationDots = () => {
-    return (
-      <View style={styles.pagination}>
-        {screens.map((_, index) => (
-          <View 
-            key={index} 
-            style={[styles.paginationDot, 
-              currentScreen === index ? styles.paginationDotActive : null
-            ]} 
-          />
-        ))}
-      </View>
-    );
+  const handleSkipOrFinish = () => {
+    router.replace("/(tabs)"); // Navigate to the main tabs (Home)
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      {renderBackground()}
-      <View style={styles.iconCircleContainer}>
-        <View style={styles.iconCircle}>
-          <Ionicons name={screen.iconName as any} size={32} color={screen.iconColor} />
-        </View>
-      </View>
-      
-      <View style={styles.contentContainer}>
-        <Text style={styles.title}>{screen.title}</Text>
-        <Text style={styles.subtitle}>{screen.subtitle}</Text>
-        <Text style={styles.description}>{screen.description}</Text>
-        
-        <View style={styles.featuresList}>
-          {screen.features.map((feature, index) => {
-            let borderStyle = {};
-            if (currentScreen === 2) {
-              if (index === 0) {
-                borderStyle = styles.criticalBorder;
-              } else if (index === 1) {
-                borderStyle = styles.normalBorder;
-              } else if (index === 2) {
-                borderStyle = styles.miscBorder;
-              }
+    <SafeAreaView style={styles.safe}>
+      <LinearGradient
+        colors={[currentScreen.backgroundColor, currentScreen.backgroundGradient]}
+        style={{ ...StyleSheet.absoluteFillObject }}
+      />
+
+      <View style={styles.container}>
+        <Ionicons 
+          name={currentScreen.iconName as keyof typeof Ionicons.glyphMap} 
+          size={80} 
+          color={currentScreen.iconColor} 
+          style={styles.mainIcon} 
+        />
+        <Text style={styles.title}>{currentScreen.title}</Text>
+        <Text style={styles.subtitle}>{currentScreen.subtitle}</Text>
+        <Text style={styles.description}>{currentScreen.description}</Text>
+
+        {currentScreen.features.map((f, idx) => (
+          <View key={idx} style={styles.feature}>
+            <Ionicons name={f.icon as keyof typeof Ionicons.glyphMap} size={22} color="#fff" />
+            <Text style={styles.featureText}>{f.text}</Text>
+          </View>
+        ))}
+
+        {/* Skip Button */}
+        <TouchableOpacity style={styles.skipButton} onPress={handleSkipOrFinish}>
+          <Text style={styles.skipText}>Skip</Text>
+        </TouchableOpacity>
+
+        {/* Next / Get Started Button */}
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => {
+            if (screenIndex < screens.length - 1) {
+              setScreenIndex(screenIndex + 1);
+            } else {
+              handleSkipOrFinish();
             }
-            
-            const notificationTypes = ['hapticFeedback', 'pushNotifications', 'locationTracking'];
-            
-            return (
-              <TouchableOpacity 
-                key={index} 
-                style={[styles.featureItem, borderStyle]}
-                onPress={() => {
-                  if (currentScreen === 1) {
-                    const soundTypes = ['critical', 'normal', 'misc'];
-                    const soundType = soundTypes[index] as keyof typeof selectedSounds;
-                    setSelectedSounds(prev => ({
-                      ...prev,
-                      [soundType]: !prev[soundType]
-                    }));
-                  }
-                  if (currentScreen === 3) {
-                    const notificationType = notificationTypes[index] as keyof typeof notificationSettings;
-                    setNotificationSettings(prev => ({
-                      ...prev,
-                      [notificationType]: !prev[notificationType]
-                    }));
-                  }
-                }}
-              >
-                <View style={styles.checkboxContainer}>
-                  {currentScreen === 1 && (
-                    <View style={[styles.checkbox, selectedSounds[['critical', 'normal', 'misc'][index] as keyof typeof selectedSounds] ? styles.checkboxSelected : null]}>
-                      {selectedSounds[['critical', 'normal', 'misc'][index] as keyof typeof selectedSounds] && (
-                        <Ionicons name="checkmark" size={16} color="#FFFFFF" />
-                      )}
-                    </View>
-                  )}
-                  {currentScreen === 3 && (
-                    <View style={[styles.toggleSwitch, notificationSettings[notificationTypes[index] as keyof typeof notificationSettings] ? styles.toggleSwitchOn : styles.toggleSwitchOff]}>
-                      <View style={[styles.toggleKnob, notificationSettings[notificationTypes[index] as keyof typeof notificationSettings] ? styles.toggleKnobOn : styles.toggleKnobOff]} />
-                    </View>
-                  )}
-                  <Ionicons name={feature.icon as any} size={20} color="#FFFFFF" style={styles.featureIcon} />
-                  <Text style={styles.featureText}>{feature.text}</Text>
-                </View>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </View>
-      
-      <View style={styles.bottomContainer}>
-        {renderPaginationDots()}
-        
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
-            <Text style={styles.skipButtonText}>Skip</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
-            <Text style={styles.nextButtonText}>
-              {currentScreen === screens.length - 1 ? 'Get Started' : 'Next'}
-            </Text>
-            {currentScreen < screens.length - 1 && (
-              <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
-            )}
-            {currentScreen === screens.length - 1 && (
-              <Ionicons name="rocket-outline" size={18} color="#FFFFFF" />
-            )}
-          </TouchableOpacity>
-        </View>
+          }}
+        >
+          <Text style={styles.buttonText}>
+            {screenIndex === screens.length - 1 ? "Get Started" : "Next"}
+          </Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "space-between",
-  },
-  iconCircleContainer: {
-    alignItems: "center",
-    marginTop: 60,
-  },
-  iconCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  contentContainer: {
-    paddingHorizontal: 24,
-    alignItems: "center",
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#FFFFFF",
-    textAlign: "center",
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: "#FFFFFF",
-    opacity: 0.8,
-    textAlign: "center",
-    marginBottom: 16,
-  },
-  description: {
-    fontSize: 14,
-    color: "#FFFFFF",
-    textAlign: "center",
-    marginBottom: 24,
-    opacity: 0.9,
-    lineHeight: 20,
-  },
-  featuresList: {
-    width: "100%",
-    marginBottom: 20,
-  },
-  featureItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-  },
-  checkboxContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  checkbox: {
-    width: 22,
-    height: 22,
-    borderRadius: 4,
-    borderWidth: 2,
-    borderColor: "#FFFFFF",
-    marginRight: 10,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  checkboxSelected: {
-    backgroundColor: "rgba(255, 255, 255, 0.3)",
-  },
-  featureIcon: {
-    marginRight: 10,
-  },
-  featureText: {
-    fontSize: 14,
-    color: "#FFFFFF",
-    opacity: 0.9,
-  },
-  criticalBorder: {
-    borderWidth: 2,
-    borderColor: "#FF5252",
-    borderStyle: "dashed",
-    backgroundColor: "rgba(255, 82, 82, 0.1)",
-  },
-  normalBorder: {
-    borderWidth: 2,
-    borderColor: "#FFD740",
-    borderStyle: "solid",
-    backgroundColor: "rgba(255, 215, 64, 0.1)",
-  },
-  miscBorder: {
-    borderWidth: 2,
-    borderColor: "#40C4FF",
-    borderStyle: "dotted",
-    backgroundColor: "rgba(64, 196, 255, 0.1)",
-  },
-  toggleSwitch: {
-    width: 40,
-    height: 22,
-    borderRadius: 11,
-    marginRight: 10,
-    padding: 2,
-  },
-  toggleSwitchOn: {
-    backgroundColor: "#64FFDA",
-  },
-  toggleSwitchOff: {
-    backgroundColor: "rgba(255, 255, 255, 0.3)",
-  },
-  toggleKnob: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: "#FFFFFF",
-  },
-  toggleKnobOn: {
-    transform: [{ translateX: 18 }],
-  },
-  toggleKnobOff: {
-    transform: [{ translateX: 0 }],
-  },
-  bottomContainer: {
-    paddingHorizontal: 24,
-    paddingBottom: 40,
-  },
-  pagination: {
-    flexDirection: "row",
-    justifyContent: "center",
-    marginBottom: 24,
-  },
-  paginationDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "rgba(255, 255, 255, 0.4)",
-    marginHorizontal: 4,
-  },
-  paginationDotActive: {
-    backgroundColor: "#FFFFFF",
-    width: 20,
-  },
-  buttonContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  skipButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
-  },
-  skipButtonText: {
-    color: "#FFFFFF",
-    fontSize: 14,
-    fontWeight: "500",
-  },
-  nextButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-  },
-  nextButtonText: {
-    color: "#FFFFFF",
-    fontSize: 14,
-    fontWeight: "500",
-    marginRight: 8,
-  },
+  safe: { flex: 1, backgroundColor: "#000" },
+  container: { flex: 1, justifyContent: "center", alignItems: "center", padding: 20 },
+  mainIcon: { marginBottom: 20 },
+  title: { fontSize: 26, fontWeight: "bold", color: "#fff", marginBottom: 8, textAlign: "center" },
+  subtitle: { fontSize: 18, fontWeight: "600", color: "#eee", marginBottom: 12, textAlign: "center" },
+  description: { fontSize: 15, color: "#ddd", marginBottom: 20, textAlign: "center" },
+  feature: { flexDirection: "row", alignItems: "center", marginBottom: 8 },
+  featureText: { marginLeft: 8, fontSize: 15, color: "#fff" },
+  button: { marginTop: 25, padding: 14, backgroundColor: "#000", borderRadius: 8 },
+  buttonText: { color: "#fff", fontSize: 16, fontWeight: "600" },
+  skipButton: { position: "absolute", top: 40, right: 20, padding: 10 },
+  skipText: { color: "#fff", fontSize: 14 }
 });
